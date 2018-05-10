@@ -1,5 +1,6 @@
 import time
 from six.moves import xrange
+from hashlib import md5
 
 from .base import BaseTestCase
 from happybase_mock import Connection
@@ -261,6 +262,17 @@ class TestTable(BaseTestCase):
             (b'2', {b'd:count': b'2'})
         ])
 
+    def test_scan_arbitrary_binary_row_keys(self):
+        common_prefix = md5(b'common_prefix').digest()
+        row_key1 = b''.join([common_prefix, b'key1'])
+        row_key2 = b''.join([common_prefix, b'key2'])
+
+        self.table.put(row_key1, {b'd:value': b'value1'})
+        self.table.put(row_key2, {b'd:value': b'value2'})
+
+        self.assertEqual(list(self.table.scan(row_prefix=common_prefix, limit=1, reverse=True)), [
+            (row_key2, {b'd:value': b'value2'})
+        ])
 
     def test_scan_invalid_arguments(self):
         with self.assertRaises(TypeError):
@@ -276,8 +288,8 @@ class TestTable(BaseTestCase):
         # Internal representation should be an 8-byte signed integer in big
         # endian
         self.assertEqual(self.table.row(b'tina'),
-            {b'd:age': b'\x00\x00\x00\x00\x00\x00\x00\x14'}
-        )
+                         {b'd:age': b'\x00\x00\x00\x00\x00\x00\x00\x14'}
+                         )
 
         self.table.counter_inc(b'tina', b'd:age', value=5)
         self.assertEqual(self.table.counter_get(b'tina', b'd:age'), 25)

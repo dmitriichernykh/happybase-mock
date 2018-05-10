@@ -1,6 +1,6 @@
 import struct
 import time
-from six.moves import xrange
+import six
 from six import iteritems
 
 from .batch import Batch
@@ -15,15 +15,21 @@ def _check_table_existence(method):
 
 
 # Copied from happybase.util
-def _str_increment(s):
-    if not isinstance(s, str):
-        s = s.decode('utf-8')
-    result = None
-    for i in xrange(len(s) - 1, -1, -1):
-        if s[i] != '\xff':
-            result = s[:i] + chr(ord(s[i]) + 1)
-            break
-    return result.encode('utf-8')
+def bytes_increment(b):
+    """Increment and truncate a byte string (for sorting purposes)
+    This functions returns the shortest string that sorts after the given
+    string when compared using regular string comparison semantics.
+    This function increments the last byte that is smaller than ``0xFF``, and
+    drops everything after it. If the string only contains ``0xFF`` bytes,
+    `None` is returned.
+    """
+    assert isinstance(b, six.binary_type)
+    b = bytearray(b)  # Used subset of its API is the same on Python 2 and 3.
+    for i in range(len(b) - 1, -1, -1):
+        if b[i] != 0xff:
+            b[i] += 1
+            return bytes(b[:i+1])
+    return None
 
 
 class Table(object):
@@ -142,7 +148,7 @@ class Table(object):
                     "or 'row_stop'")
 
             row_start = row_prefix
-            row_stop = _str_increment(row_prefix)
+            row_stop = bytes_increment(row_prefix)
 
         if row_start is None:
             row_start = b''
@@ -162,7 +168,7 @@ class Table(object):
         ], reverse=reverse)
 
         if limit:
-            if len(result) < limit:
+            if len(result) > limit:
                 result = result[:limit]
         
         return iter(result)

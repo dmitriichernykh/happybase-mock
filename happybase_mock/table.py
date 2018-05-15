@@ -156,7 +156,12 @@ class Table(object):
             if not isinstance(row_start, bytes):
                 row_start = row_start.encode('utf-8')
 
-        rows = filter(lambda k: k >= row_start, self._data)
+        if columns:
+            rows = (k for k, v in self._data.items() if set(columns).intersection(v))
+        else:
+            rows = self._data.keys()
+
+        rows = filter(lambda k: k >= row_start, rows)
         if row_stop is not None:
             if not isinstance(row_stop, bytes):
                 row_stop = row_stop.encode('utf-8')

@@ -262,6 +262,22 @@ class TestTable(BaseTestCase):
             (b'2', {b'd:count': b'2'})
         ])
 
+    def test_scan_with_multiple_columns(self):
+        self.table.put(b'1', {b'd:first': 'f1'})
+
+        self.table.put(b'2', {b'd:first': 'f2',
+                              b'd:second': 's2'})
+
+        self.table.put(b'3', {b'd:first': 'f3',
+                              b'd:second': 's3',
+                              b'd:third': 't3'})
+
+        self.assertEqual(list(self.table.scan(columns=[b'd:first', b'd:second'])), [
+            (b'1', {b'd:first': b'f1'}),
+            (b'2', {b'd:first': b'f2', b'd:second': b's2'}),
+            (b'3', {b'd:first': b'f3', b'd:second': b's3'})
+        ])
+
     def test_scan_arbitrary_binary_row_keys(self):
         common_prefix = md5(b'common_prefix').digest()
         row_key1 = b''.join([common_prefix, b'key1'])

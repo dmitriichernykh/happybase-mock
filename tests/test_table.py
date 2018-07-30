@@ -290,6 +290,30 @@ class TestTable(BaseTestCase):
             (row_key2, {b'd:value': b'value2'})
         ])
 
+    def test_scan_with_row_start_and_row_stop_and_reverse(self):
+        self.table.put(b'1', {b'd:value': b'value1'})
+        self.table.put(b'2', {b'd:value': b'value2'})
+        self.table.put(b'3', {b'd:value': b'value3'})
+        self.table.put(b'4', {b'd:value': b'value4'})
+        self.table.put(b'5', {b'd:value': b'value5'})
+
+        self.assertEqual(list(self.table.scan(row_start=b"4", row_stop=b"2", reverse=True)),[
+            (b'4', {b'd:value': b'value4'}),
+            (b'3', {b'd:value': b'value3'})
+        ])
+
+        self.assertEqual(list(self.table.scan(row_start=b"3", reverse=True)),[
+            (b'3', {b'd:value': b'value3'}),
+            (b'2', {b'd:value': b'value2'}),
+            (b'1', {b'd:value': b'value1'})
+        ])
+
+        self.assertEqual(list(self.table.scan(row_stop=b"3", reverse=True)),[
+            (b'5', {b'd:value': b'value5'}),
+            (b'4', {b'd:value': b'value4'})
+        ])
+
+
     def test_scan_invalid_arguments(self):
         with self.assertRaises(TypeError):
             self.table.scan(row_start=b'1', row_stop=b'2', row_prefix=b'3')

@@ -135,6 +135,10 @@ class Table(object):
              batch_size=1000, scan_batching=None, limit=None,
              reverse=False, sorted_columns=False, **kwargs):
         # encode columns key and data (for python3 compatibility)
+        if reverse:
+            old_row_start = row_start
+            row_start = row_stop
+            row_stop = old_row_start
         if columns:
           for i, col in enumerate(columns):
             if not isinstance(col, bytes):
@@ -161,11 +165,17 @@ class Table(object):
         else:
             rows = self._data.keys()
 
-        rows = filter(lambda k: k >= row_start, rows)
+        if not reverse:
+            rows = filter(lambda k: k >= row_start, rows)
+        else:
+            rows = filter(lambda k: k > row_start, rows)
         if row_stop is not None:
             if not isinstance(row_stop, bytes):
                 row_stop = row_stop.encode('utf-8')
-            rows = filter(lambda k: k < row_stop, rows)
+            if not reverse:
+                rows = filter(lambda k: k < row_stop, rows)
+            else:
+                rows = filter(lambda k: k <= row_stop, rows)
 
         result = sorted([
             (row, self.row(row, columns, timestamp, include_timestamp))

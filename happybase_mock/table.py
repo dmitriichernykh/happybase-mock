@@ -246,6 +246,8 @@ class Table(object):
             if not columns:
                 # Delete all columns if not specified
                 columns = data.keys()
+            else:
+                columns = list(set(columns) & data.keys())
 
             if timestamp is None:
                 timestamp = int(time.time() * 1000)

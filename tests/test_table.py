@@ -111,7 +111,7 @@ class TestTable(BaseTestCase):
         self.table.put(b'02', {b'd:name': b'Two'}, timestamp=20)
         self.table.put(b'03', {b'd:name': b'Three'}, timestamp=30)
 
-        self.assertEqual(self.table.rows([b'03', b'01', b'02']), [
+        self.assertEqual(self.table.rows([b'03', b'01', b'02', b'not_present']), [
             (b'03', {b'd:name': b'Three'}),
             (b'01', {b'd:name': b'One'}),
             (b'02', {b'd:name': b'Two'})
